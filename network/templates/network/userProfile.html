@@ -1,0 +1,32 @@
+{% extends "network/layout.html" %} 
+{% load humanize %}
+    {% block body %}
+		<div class="card mt-3 px-3 py-2 w-50 mx-auto text-center">
+			<h4 class="card-title text-primary">{{user_profile.username}}</h4>
+			<div>Followers: <span class="fw-bold">{{user_profile.followers|length}}</span></div>
+			<div>Following: <span class="fw-bold">{{user_profile.following|length}}</span></div>
+			{% if user.id != user_profile.id %}
+				<button type="button" id="btn-profile" class="btn w-50 my-2 mx-auto" data-profile-id="{{user_profile.id}}" data-follow-status="{{follow_status}}">
+					{% if follow_status %}
+						Un-follow
+					{% else %}
+						Follow
+					{% endif %}
+				</button>
+			{% endif %}
+		</div>
+		</div>
+		{% for post in posts %}
+		<div class="card mt-3 px-3 py-2 w-75 mx-auto">
+		<div class="d-flex">
+			<h5 class="card-title text-primary">{{user_profile.username}}</h5>
+			<span class="text-small ms-3">{{post.timestamp|naturaltime}}</span>
+		</div>
+		<div class="card-body">
+			<p class="card-text">{{post.message}}</p>
+			<a href="#" class="card-link">Card link</a>
+			<a href="#" class="card-link">Another link</a>
+		</div>
+		</div>
+		{% endfor %}
+	{% endblock %}

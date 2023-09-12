@@ -1,3 +1,13 @@
+function changeBtnColor() {
+	var btn = document.querySelector("#btn-profile");
+	var status = btn.dataset.followStatus;
+	if (status) {
+		btn.classList.add("btn-success");
+	}
+	else{
+		btn.classList.add("btn-danger");
+	}
+}
 function createANewPost(csrf_token, message) {
   fetch("/new-post", {
     method: "POST",
@@ -43,12 +53,18 @@ function displayAllPosts() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  displayAllPosts();
-  document.querySelector("form#create_a_new_post").onsubmit = function (e) {
-    e.preventDefault();
-    const csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0]
-      .value;
-    var message = document.querySelector("#post_message");
-    createANewPost(csrf_token, message);
-  };
+	var pattern_profile = /^\/user-profile\/\d+$/;
+	if (pattern_profile.test(window.location.pathname)) {
+		changeBtnColor();
+	}
+	else{
+	  displayAllPosts();
+	  document.querySelector("form#create_a_new_post").onsubmit = function (e) {
+		e.preventDefault();
+		const csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0]
+		  .value;
+		var message = document.querySelector("#post_message");
+		createANewPost(csrf_token, message);
+	  };
+  }
 });

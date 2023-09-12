@@ -87,5 +87,17 @@ def createPost(request):
 def allPosts(request):
     posts = Post.objects.all().order_by("-timestamp")
     return render(request, 'network/allPosts.html', {'posts': posts})
-    # return render(request, 'network/allPosts.html', {"posts": posts})
-    # return JsonResponse(posts_data, safe=False)
+
+def viewProfile(request, uid):
+    user_profile = User.objects.get(pk=uid)
+    posts_data = Post.objects.filter(owner = user_profile)
+    follow_status = None
+    if request.user:
+        follow_status = check_follow_status(request, user_profile.id)
+    return render(request, 'network/userProfile.html', {'user_profile': user_profile, 'posts': posts_data, 'follow_status': follow_status})
+
+@login_required
+def check_follow_status(request, user_id):
+    user = User.objects.get(pk=user_id)
+    is_following = user.followers.filter(pk=request.user.pk).exists()
+    return is_following
