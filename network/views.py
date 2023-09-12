@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 import json
+from django.core import serializers
 
 from .models import User, Post
 
@@ -81,4 +82,7 @@ def createPost(request):
     return JsonResponse({"message": "Created a new post successfully."}, status=201)
 
 
-
+def allPosts(request):
+    posts = Post.objects.all().order_by("-timestamp")
+    posts_data = [{'id': post.id, 'owner': post.owner.username, 'message': post.message, 'timestamp': post.timestamp} for post in posts]
+    return JsonResponse(posts_data, safe=False)
