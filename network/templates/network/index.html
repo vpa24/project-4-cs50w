@@ -1,5 +1,15 @@
-{% extends "network/layout.html" %}
-
-{% block body %}
-    TODO
+{% extends "network/layout.html" %} 
+    {% block body %}
+        {% if user.is_authenticated %}
+        <div class="card w-75 mx-auto pb-5 pt-2 px-4 position-relative">
+            <div class="card-body fw-bold">Let's create a new post!</div>
+            <form method="post" id="create_a_new_post" >
+                {% csrf_token %}
+                 <textarea class="form-control" id="post_test" placeholder="What are you thinking?"></textarea>
+                 <button type="submit" class="position-absolute end-0 btn btn-primary mt-2 ms-auto me-4 btn-sm">POST</button>
+            </form>
+        </div>
+        {% else %}
+            All Posts
+        {% endif %}
 {% endblock %}
