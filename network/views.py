@@ -79,10 +79,13 @@ def createPost(request):
     user = request.user
     new_post = Post(owner = user, message = message)
     new_post.save()
-    return JsonResponse({"message": "Created a new post successfully."}, status=201)
+    latest_post = Post.objects.latest('id')
+    post_data = {'id': latest_post.id, 'owner': latest_post.owner.username, 'message': latest_post.message, 'timestamp': latest_post.timestamp}
+    return JsonResponse({"message": "Created a new post successfully.", "post": post_data}, status=201)
 
 
 def allPosts(request):
     posts = Post.objects.all().order_by("-timestamp")
-    posts_data = [{'id': post.id, 'owner': post.owner.username, 'message': post.message, 'timestamp': post.timestamp} for post in posts]
-    return JsonResponse(posts_data, safe=False)
+    return render(request, 'network/allPosts.html', {'posts': posts})
+    # return render(request, 'network/allPosts.html', {"posts": posts})
+    # return JsonResponse(posts_data, safe=False)

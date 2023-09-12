@@ -10,17 +10,35 @@ function createANewPost(csrf_token, message) {
     .then((reponse) => reponse.json())
     .then((result) => {
       console.log(result);
-      if (result.message) {
+      if (result.post) {
         message.value = "";
+        const post = result.post;
+        const tempElement = document.createElement("div");
+        const htmlString = `<div class="card mt-3 px-3 py-2 w-75 mx-auto fade-in" >
+			<div class="d-flex">
+				<h5 class="card-title"><a href="#">${post.owner}</a></h5>
+			</div>
+		<div class="card-body">
+			<p class="card-text">${post.message}</p>
+			<a href="#" class="card-link">Card link</a>
+			<a href="#" class="card-link">Another link</a>
+		</div>
+		</div>`;
+        tempElement.innerHTML = htmlString;
+        let fadeIn = setInterval(() => {
+          element.style.opacity = opacity;
+          opacity += 0.01;
+        }, 10);
+        document.querySelector("#allPosts").prepend(tempElement);
       }
     });
 }
 
-function displayAllPosts(){
-	fetch("/posts")
-    .then((reponse) => reponse.json())
-    .then((posts) => {
-      console.log(posts);
+function displayAllPosts() {
+  fetch("/posts")
+    .then((reponse) => reponse.text())
+    .then((template) => {
+      document.querySelector("#allPosts").innerHTML = template;
     });
 }
 
