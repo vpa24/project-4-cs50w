@@ -3,6 +3,11 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+import json
+
+from .models import User, Post
 
 from .models import User
 
@@ -61,3 +66,19 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+@login_required
+def createPost(request):
+     # Posting a new post must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    data = json.loads(request.body)
+    message = data.get("message", "")
+    user = request.user
+    new_post = Post(owner = user, message = message)
+    new_post.save()
+    return JsonResponse({"message": "Created a new post successfully."}, status=201)
+
+
+
