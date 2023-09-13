@@ -1,10 +1,18 @@
-{% load humanize %}
-{% for post in posts %}
-<div class="card mt-3 px-3 py-2 w-75 mx-auto" >
-	<div class="d-flex">
-		<h5 class="card-title"><a href="{% url 'user-profile' post.owner.id %}">{{post.owner}}</a></h5>
-		<span class="text-small ms-3">{{post.timestamp|naturaltime}}</span>
-	</div>
+{% load humanize %} {% for post in posts %}
+<div class="card mt-3 px-3 py-2 w-75 mx-auto">
+  <div class="d-flex">
+    <h5 class="card-title">
+      <a href="{% url 'user-profile' post.owner.id %}">{{post.owner}}</a>
+    </h5>
+    <span class="text-small ms-3">{{post.timestamp|naturaltime}}</span>
+	{% if user.is_authenticated %}
+	 	{% if user.id == post.owner.id %}
+			<div class="edit-post ms-auto" data-post-id={{post.id}}>
+				<i class="fa-regular fa-pen-to-square"></i>
+			</div>
+		{% endif %}
+	 {% endif %}
+  </div>
   <div class="card-body">
     <p class="card-text">{{post.message}}</p>
     <a href="#" class="card-link">Card link</a>

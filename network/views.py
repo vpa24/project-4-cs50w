@@ -5,8 +5,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.humanize.templatetags.humanize import naturaltime
 import json
 from django.core import serializers
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import User, Post
 
@@ -80,13 +82,24 @@ def createPost(request):
     new_post = Post(owner = user, message = message)
     new_post.save()
     latest_post = Post.objects.latest('id')
-    post_data = {'id': latest_post.id, 'owner': latest_post.owner.username, 'message': latest_post.message, 'timestamp': latest_post.timestamp}
+    post_data = {
+        'id': latest_post.id,
+        'owner': latest_post.owner.username,
+        'message': latest_post.message,
+        'timestamp': naturaltime(latest_post.timestamp)  # Use the naturaltime filter
+    }
     return JsonResponse({"message": "Created a new post successfully.", "post": post_data}, status=201)
 
 
 def allPosts(request):
     posts = Post.objects.all().order_by("-timestamp")
-    return render(request, 'network/allPosts.html', {'posts': posts})
+    posts_data = [{
+        'id': post.id,
+        'owner': post.owner.username,
+        'message': post.message,
+        'timestamp': naturaltime(post.timestamp)
+    } for post in posts]
+    return JsonResponse({'posts': posts_data})
 
 def viewProfile(request, uid):
     user_profile = User.objects.get(pk=uid)
@@ -114,3 +127,14 @@ def check_follow_status(request, user_id):
     user = User.objects.get(pk=user_id)
     is_following = user.followers.filter(pk=request.user.pk).exists()
     return 'following' if is_following else 'unfollow'
+
+@csrf_exempt
+@login_required
+def updatePost(request, post_id):
+    if request.method== "PUT":
+        post = Post.objects.get(id=post_id)
+        data = json.loads(request.body)
+        message = data.get("message")
+        post.message = message
+        post.save()
+        return JsonResponse({"statusText": "success"},status=201)
