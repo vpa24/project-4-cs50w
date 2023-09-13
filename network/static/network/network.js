@@ -1,12 +1,36 @@
-function changeBtnColor() {
-	var btn = document.querySelector("#btn-profile");
-	var status = btn.dataset.followStatus;
-	if (status) {
-		btn.classList.add("btn-success");
-	}
-	else{
-		btn.classList.add("btn-danger");
-	}
+function changeFollowStatus(status, btn) {
+  const uid = btn.dataset.profileId;
+  const csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+  fetch(`/user-profile/${uid}`, {
+    method: "PUT",
+    headers: { "X-CSRFToken": csrf_token },
+    body: JSON.stringify({
+      status: status,
+    }),
+  })
+    .then((reponse) => reponse.json())
+    .then((result) => {
+      if (status == "unfollow") {
+        console.log("1");
+        document.querySelector("#btn-profile").textContent = "Unfollow";
+      } else {
+        console.log("2");
+        document.querySelector("#btn-profile").textContent = "Follow";
+      }
+      changeBtnColor(result.data.status, btn);
+      document.querySelector("#followers").innerHTML = result.data.followers;
+      btn.setAttribute("data-follow-status", result.data.status);
+    });
+}
+
+function changeBtnColor(status, btn) {
+  if (status == "following") {
+    btn.classList.add("btn-danger");
+    btn.classList.remove("btn-success");
+  } else {
+    btn.classList.remove("btn-danger");
+    btn.classList.add("btn-success");
+  }
 }
 function createANewPost(csrf_token, message) {
   fetch("/new-post", {
@@ -19,7 +43,6 @@ function createANewPost(csrf_token, message) {
   })
     .then((reponse) => reponse.json())
     .then((result) => {
-      console.log(result);
       if (result.post) {
         message.value = "";
         const post = result.post;
@@ -53,18 +76,25 @@ function displayAllPosts() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-	var pattern_profile = /^\/user-profile\/\d+$/;
-	if (pattern_profile.test(window.location.pathname)) {
-		changeBtnColor();
-	}
-	else{
-	  displayAllPosts();
-	  document.querySelector("form#create_a_new_post").onsubmit = function (e) {
-		e.preventDefault();
-		const csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0]
-		  .value;
-		var message = document.querySelector("#post_message");
-		createANewPost(csrf_token, message);
-	  };
+  var pattern_profile = /^\/user-profile\/\d+$/;
+  if (pattern_profile.test(window.location.pathname)) {
+    var btn = document.querySelector("#btn-profile");
+    var status = btn.dataset.followStatus;
+    changeBtnColor(status, btn);
+    document.addEventListener("click", function (e) {
+      e.preventDefault();
+      btn = document.querySelector("#btn-profile");
+      status = btn.dataset.followStatus;
+      changeFollowStatus(status, btn);
+    });
+  } else {
+    displayAllPosts();
+    document.querySelector("form#create_a_new_post").onsubmit = function (e) {
+      e.preventDefault();
+      const csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0]
+        .value;
+      var message = document.querySelector("#post_message");
+      createANewPost(csrf_token, message);
+    };
   }
 });

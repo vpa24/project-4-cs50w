@@ -3,16 +3,19 @@
     {% block body %}
 		<div class="card mt-3 px-3 py-2 w-50 mx-auto text-center">
 			<h4 class="card-title text-primary">{{user_profile.username}}</h4>
-			<div>Followers: <span class="fw-bold">{{user_profile.followers|length}}</span></div>
-			<div>Following: <span class="fw-bold">{{user_profile.following|length}}</span></div>
+			<div>Followers: <span class="fw-bold" id="followers">{{user_profile.followers.all|length}}</span></div>
+			<div>Following: <span class="fw-bold" id="following">{{user_profile.following.all|length}}</span></div>
 			{% if user.id != user_profile.id %}
+			<form >
+				{% csrf_token %}
 				<button type="button" id="btn-profile" class="btn w-50 my-2 mx-auto" data-profile-id="{{user_profile.id}}" data-follow-status="{{follow_status}}">
-					{% if follow_status %}
-						Un-follow
+					{% if follow_status == 'following' %}
+						Unfollow
 					{% else %}
 						Follow
 					{% endif %}
 				</button>
+			</form>
 			{% endif %}
 		</div>
 		</div>

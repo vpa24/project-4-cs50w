@@ -90,14 +90,27 @@ def allPosts(request):
 
 def viewProfile(request, uid):
     user_profile = User.objects.get(pk=uid)
-    posts_data = Post.objects.filter(owner = user_profile)
-    follow_status = None
-    if request.user:
+    if request.method == "GET":
+        posts_data = Post.objects.filter(owner = user_profile)
+        follow_status = None
+        if request.user:
+            follow_status = check_follow_status(request, user_profile.id)
+            return render(request, 'network/userProfile.html', {'user_profile': user_profile, 'posts': posts_data, 'follow_status': follow_status})
+        return render(request, 'network/userProfile.html', {'user_profile': user_profile, 'posts': posts_data, 'follow_status': follow_status})
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        status = data.get("status")
+        user_profile = User.objects.get(pk=uid)
+        if(status == 'unfollow'):
+            user_profile.followers.add(request.user)
+        else:
+            user_profile.followers.remove(request.user)
         follow_status = check_follow_status(request, user_profile.id)
-    return render(request, 'network/userProfile.html', {'user_profile': user_profile, 'posts': posts_data, 'follow_status': follow_status})
+        followers_following = {'followers': user_profile.followers.count(), 'following': user_profile.following.count(), 'status': follow_status}
+        return JsonResponse({"data": followers_following}, status=201)
 
 @login_required
 def check_follow_status(request, user_id):
     user = User.objects.get(pk=user_id)
     is_following = user.followers.filter(pk=request.user.pk).exists()
-    return is_following
+    return 'following' if is_following else 'unfollow'
