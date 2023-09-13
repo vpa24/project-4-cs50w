@@ -79,12 +79,12 @@ document.addEventListener("DOMContentLoaded", function () {
     var btn = document.querySelector("#btn-profile");
     var status = btn.dataset.followStatus;
     changeBtnColor(status, btn);
-    document.addEventListener("click", function (e) {
+    btn.onclick = function (e) {
       e.preventDefault();
       btn = document.querySelector("#btn-profile");
       status = btn.dataset.followStatus;
       changeFollowStatus(status, btn);
-    });
+    };
   } else {
     displayAllPosts();
     document.querySelector("form#create_a_new_post").onsubmit = function (e) {
