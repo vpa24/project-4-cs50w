@@ -11,10 +11,8 @@ function changeFollowStatus(status, btn) {
     .then((reponse) => reponse.json())
     .then((result) => {
       if (status == "unfollow") {
-        console.log("1");
         document.querySelector("#btn-profile").textContent = "Unfollow";
       } else {
-        console.log("2");
         document.querySelector("#btn-profile").textContent = "Follow";
       }
       changeBtnColor(result.data.status, btn);
