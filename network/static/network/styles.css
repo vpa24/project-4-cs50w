@@ -4,6 +4,9 @@ body {
 .edit-post.ms-auto {
   cursor: pointer;
 }
+.love-icon{
+  cursor: pointer;
+}
 .fade-in {
   opacity: 1;
   animation-name: fadeInOpacity;

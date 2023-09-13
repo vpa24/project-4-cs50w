@@ -2,14 +2,13 @@ function postTemplate(post) {
   return `<div class="d-flex">
 			<h5 class="card-title"><a href="#">${post.owner}</a></h5>
 				<span class="text-small ms-3">${post.timestamp}</span>
-			<div class="edit-post ms-auto cursor-pointer" data-post-id=${post.id}>
-				<i class="fa-regular fa-pen-to-square edit-icon"></i>
-			</div>
+			  <div class="edit-post ms-auto cursor-pointer" data-post-id=${post.id}>
+				  <i class="fa-regular fa-pen-to-square"></i>
+			  </div>
 		</div>
 		<div class="card-body">
 			<p class="card-text">${post.message}</p>
-			<a href="#" class="card-link">Card link</a>
-			<a href="#" class="card-link">Another link</a>
+      <span class=""  data-post-id=${post.id}><i class="fa-regular fa-heart love-icon" style="color:#ff0080"></i></span>
 		</div>`;
 }
 function changeFollowStatus(status, btn) {
@@ -68,16 +67,13 @@ function createANewPost(csrf_token, message) {
 
 function displayAllPosts() {
   fetch("/posts")
-    .then((reponse) => reponse.json())
+    .then((reponse) => reponse.text())
     .then((result) => {
-      const posts = result.posts;
-      posts.forEach((post) => {
-        const template = postTemplate(post);
-        const post_element = document.createElement("div");
-        post_element.className = "card mt-3 px-3 py-2 w-75 mx-auto";
-        post_element.innerHTML = template;
-        document.querySelector("#allPosts").append(post_element);
-      });
+      const template = result;
+      const post_element = document.createElement("div");
+      post_element.innerHTML = template;
+      document.querySelector("#allPosts").append(post_element);
+      document.querySelector(".title").innerHTML = "All Posts";
     });
 }
 
@@ -102,10 +98,12 @@ document.addEventListener("DOMContentLoaded", function () {
       var message = document.querySelector("#post_message");
       createANewPost(csrf_token, message);
     };
-    // After displaying posts, attach click event listeners to .edit-post elements
+    // .edit-post elements
     document.addEventListener("click", function (event) {
       const element = event.target;
-      if (element.className == "fa-regular fa-pen-to-square edit-icon") {
+      const e_className = element.className;
+      console.log(element);
+      if (e_className == "fa-regular fa-pen-to-square") {
         const parent = element.parentElement;
         parent.style.display = "none";
         const card_body = parent.parentElement.nextElementSibling;
@@ -141,6 +139,34 @@ document.addEventListener("DOMContentLoaded", function () {
               }
             });
         };
+      } else if (
+        e_className.includes("fa-regular") ||
+        e_className.includes("fa-solid")
+      ) {
+        const post_id = element.parentElement.dataset.postId;
+        fetch(`/post/${post_id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            like: "like",
+          }),
+        })
+          .then((reponse) => reponse.json())
+          .then((result) => {
+            const totalLikes = document.querySelector(
+              `.total-likes-${post_id}`
+            );
+            if (result.totalLikes == 0) {
+              document.querySelector(`.total-likes-${post_id}`).style.display =
+                "none";
+              element.classList.remove("fa-solid");
+              element.classList.add("fa-regular");
+            } else if (result.totalLikes == 1) {
+              totalLikes.style.display = "inline";
+              element.classList.add("fa-solid");
+              element.classList.remove("fa-regular");
+            }
+            totalLikes.innerHTML = result.totalLikes;
+          });
       }
     });
   }

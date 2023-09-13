@@ -9,6 +9,7 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 import json
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
 
 from .models import User, Post
 
@@ -73,22 +74,22 @@ def register(request):
 
 @login_required
 def createPost(request):
-     # Posting a new post must be via POST
+    # Posting a new post must be via POST
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
     data = json.loads(request.body)
     message = data.get("message", "")
     user = request.user
-    new_post = Post(owner = user, message = message)
+    new_post = Post(owner=user, message=message)
     new_post.save()
     latest_post = Post.objects.latest('id')
     post_data = {
         'id': latest_post.id,
         'owner': latest_post.owner.username,
         'message': latest_post.message,
-        'timestamp': naturaltime(latest_post.timestamp)  # Use the naturaltime filter
+        'timestamp': naturaltime(latest_post.timestamp)
     }
-    return JsonResponse({"message": "Created a new post successfully.", "post": post_data}, status=201)
+    return JsonResponse({"message": "Created a new post successfully.", "posts": post_data}, status=201)
 
 
 def allPosts(request):
@@ -97,14 +98,18 @@ def allPosts(request):
         'id': post.id,
         'owner': post.owner.username,
         'message': post.message,
-        'timestamp': naturaltime(post.timestamp)
+        'timestamp': naturaltime(post.timestamp),
+        'likeStatus': check_like_status(request, post.id),
+        'owner_id': post.owner.id,
+        'totalLikes': post.likes.all().count()
     } for post in posts]
-    return JsonResponse({'posts': posts_data})
+    return render(request, 'network/allPosts.html', {'posts': posts_data})
+
 
 def viewProfile(request, uid):
     user_profile = User.objects.get(pk=uid)
     if request.method == "GET":
-        posts_data = Post.objects.filter(owner = user_profile)
+        posts_data = Post.objects.filter(owner=user_profile)
         follow_status = None
         if request.user:
             follow_status = check_follow_status(request, user_profile.id)
@@ -114,13 +119,15 @@ def viewProfile(request, uid):
         data = json.loads(request.body)
         status = data.get("status")
         user_profile = User.objects.get(pk=uid)
-        if(status == 'unfollow'):
+        if (status == 'unfollow'):
             user_profile.followers.add(request.user)
         else:
             user_profile.followers.remove(request.user)
         follow_status = check_follow_status(request, user_profile.id)
-        followers_following = {'followers': user_profile.followers.count(), 'following': user_profile.following.count(), 'status': follow_status}
+        followers_following = {'followers': user_profile.followers.count(
+        ), 'following': user_profile.following.count(), 'status': follow_status}
         return JsonResponse({"data": followers_following}, status=201)
+
 
 @login_required
 def check_follow_status(request, user_id):
@@ -128,13 +135,29 @@ def check_follow_status(request, user_id):
     is_following = user.followers.filter(pk=request.user.pk).exists()
     return 'following' if is_following else 'unfollow'
 
+
 @csrf_exempt
 @login_required
 def updatePost(request, post_id):
-    if request.method== "PUT":
+    if request.method == "PUT":
         post = Post.objects.get(id=post_id)
         data = json.loads(request.body)
         message = data.get("message")
-        post.message = message
-        post.save()
-        return JsonResponse({"statusText": "success"},status=201)
+        if message != None:
+            post.message = data.get("message")
+            post.save()
+            return JsonResponse({"statusText": "success"}, status=201)
+        elif data.get("like") == "like":
+            if check_like_status(request, post_id) == False:
+                post.likes.add(request.user)
+            else:
+                post.likes.remove(request.user)
+            post = get_object_or_404(Post, id=post_id)
+            total_likes = post.likes.count()
+            return JsonResponse({"totalLikes": total_likes}, status=201)
+
+
+@login_required
+def check_like_status(request, post_id):
+    is_liked = Post.objects.filter(pk=post_id, likes=request.user).exists()
+    return is_liked

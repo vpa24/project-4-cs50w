@@ -1,22 +1,31 @@
-{% load humanize %} {% for post in posts %}
-<div class="card mt-3 px-3 py-2 w-75 mx-auto">
-  <div class="d-flex">
-    <h5 class="card-title">
-      <a href="{% url 'user-profile' post.owner.id %}">{{post.owner}}</a>
-    </h5>
-    <span class="text-small ms-3">{{post.timestamp|naturaltime}}</span>
-	{% if user.is_authenticated %}
-	 	{% if user.id == post.owner.id %}
-			<div class="edit-post ms-auto" data-post-id={{post.id}}>
-				<i class="fa-regular fa-pen-to-square"></i>
-			</div>
-		{% endif %}
-	 {% endif %}
+{% load humanize %} 
+  {% for post in posts %}
+  <div class="card mt-3 px-3 py-2 w-75 mx-auto">
+    <div class="d-flex">
+      <h5 class="card-title">
+        <a href="{% url 'user-profile' post.owner_id %}">{{post.owner}}</a>
+      </h5>
+      <span class="text-small ms-3">{{post.timestamp|naturaltime}}</span>
+      {% if user.is_authenticated %}
+        {% if user.id == post.owner_id %}
+      <div class="edit-post ms-auto" data-post-id="{{post.id}}">
+        <i class="fa-regular fa-pen-to-square"></i>
+      </div>
+      {% endif %} {% endif %}
+    </div>
+    <div class="card-body">
+      <p class="card-text">{{post.message}}</p>
+      <span
+        class=""
+        data-post-id="{{post.id}}"
+      >
+        {% if post.totalLikes > 0 %}
+          <i class="fa-solid fa-heart love-icon" style="color: #ff0080"></i>
+        {% else %}
+          <i class="fa-regular fa-heart love-icon" style="color: #ff0080"></i>
+        {% endif %}
+      </span>
+      <span class="fw-light total-likes-{{post.id}}" style="display:{% if post.totalLikes == 0 %} none {% endif %}">{{post.totalLikes}} </span> 
+    </div>
   </div>
-  <div class="card-body">
-    <p class="card-text">{{post.message}}</p>
-    <a href="#" class="card-link">Card link</a>
-    <a href="#" class="card-link">Another link</a>
-  </div>
-</div>
-{% endfor %}
+  {% endfor %}
