@@ -8,7 +8,7 @@ function postTemplate(post) {
 		</div>
 		<div class="card-body">
 			<p class="card-text">${post.message}</p>
-      <span class=""  data-post-id=${post.id}><i class="fa-regular fa-heart love-icon" style="color:#ff0080"></i></span>
+      <span data-post-id=${post.id}><i class="fa-regular fa-heart love-icon" style="color:#ff0080" data-is-user-login="True"></i></span>
 		</div>`;
 }
 function changeFollowStatus(status, btn) {
@@ -91,16 +91,20 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   } else {
     displayAllPosts();
-    document.querySelector("form#create_a_new_post").onsubmit = function (e) {
-      e.preventDefault();
-      const csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0]
-        .value;
-      var message = document.querySelector("#post_message");
-      createANewPost(csrf_token, message);
-    };
+    const createNewPost = document.querySelector("form#create_a_new_post");
+    if (createNewPost) {
+      createNewPost.onsubmit = function (e) {
+        e.preventDefault();
+        const csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0]
+          .value;
+        var message = document.querySelector("#post_message");
+        createANewPost(csrf_token, message);
+      };
+    }
     // .edit-post elements
     document.addEventListener("click", function (event) {
       const element = event.target;
+      console.log(element);
       const e_className = element.className;
       console.log(element);
       if (e_className == "fa-regular fa-pen-to-square") {
@@ -144,29 +148,34 @@ document.addEventListener("DOMContentLoaded", function () {
         e_className.includes("fa-solid")
       ) {
         const post_id = element.parentElement.dataset.postId;
-        fetch(`/post/${post_id}`, {
-          method: "PUT",
-          body: JSON.stringify({
-            like: "like",
-          }),
-        })
-          .then((reponse) => reponse.json())
-          .then((result) => {
-            const totalLikes = document.querySelector(
-              `.total-likes-${post_id}`
-            );
-            if (result.totalLikes == 0) {
-              document.querySelector(`.total-likes-${post_id}`).style.display =
-                "none";
-              element.classList.remove("fa-solid");
-              element.classList.add("fa-regular");
-            } else if (result.totalLikes == 1) {
-              totalLikes.style.display = "inline";
-              element.classList.add("fa-solid");
-              element.classList.remove("fa-regular");
-            }
-            totalLikes.innerHTML = result.totalLikes;
-          });
+        if (element.parentElement.dataset.isUserLogin) {
+          fetch(`/post/${post_id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              like: "like",
+            }),
+          })
+            .then((reponse) => reponse.json())
+            .then((result) => {
+              const totalLikes = document.querySelector(
+                `.total-likes-${post_id}`
+              );
+              if (result.totalLikes == 0) {
+                document.querySelector(
+                  `.total-likes-${post_id}`
+                ).style.display = "none";
+                element.classList.remove("fa-solid");
+                element.classList.add("fa-regular");
+              } else if (result.totalLikes == 1) {
+                totalLikes.style.display = "inline";
+                element.classList.add("fa-solid");
+                element.classList.remove("fa-regular");
+              }
+              totalLikes.innerHTML = result.totalLikes;
+            });
+        } else {
+          swal("Error!", "Please login to like any post!", "error");
+        }
       }
     });
   }
