@@ -104,9 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // .edit-post elements
     document.addEventListener("click", function (event) {
       const element = event.target;
-      console.log(element);
       const e_className = element.className;
-      console.log(element);
       if (e_className == "fa-regular fa-pen-to-square") {
         const parent = element.parentElement;
         parent.style.display = "none";
