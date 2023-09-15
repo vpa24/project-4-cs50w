@@ -18,7 +18,8 @@ from .models import User
 
 
 def index(request):
-    context = allPosts(request)
+    posts = Post.objects.all().order_by("-timestamp")
+    context = allPosts(posts, request)
     return render(request, "network/index.html", context)
 
 
@@ -94,8 +95,7 @@ def createPost(request):
     return JsonResponse({"message": "Created a new post successfully.", "post": post_data}, status=201)
 
 
-def allPosts(request):
-    posts = Post.objects.all().order_by("-timestamp")
+def allPosts(posts, request):
     posts_data = [{
         'id': post.id,
         'owner': post.owner.username,
@@ -108,8 +108,8 @@ def allPosts(request):
     p = Paginator(posts_data, 10)
     page_number = request.GET.get('page')
     page_obj = p.get_page(page_number)  # returns the desired page object
-    # page_obj = p.page(p.num_pages)
-    context = {'page_obj': page_obj, 'loop_times': range(1, page_obj.paginator.num_pages + 1)}
+    context = {'page_obj': page_obj, 'loop_times': range(
+        1, page_obj.paginator.num_pages + 1)}
 
     return context
 
@@ -129,8 +129,10 @@ def viewProfile(request, uid):
         user_profile = User.objects.get(pk=uid)
         if (status == 'unfollow'):
             user_profile.followers.add(request.user)
+            request.user.following.add(user_profile)
         else:
             user_profile.followers.remove(request.user)
+            request.user.following.remove(user_profile)
         follow_status = check_follow_status(request, user_profile.id)
         followers_following = {'followers': user_profile.followers.count(
         ), 'following': user_profile.following.count(), 'status': follow_status}
@@ -169,3 +171,12 @@ def updatePost(request, post_id):
 def check_like_status(request, post_id):
     is_liked = Post.objects.filter(pk=post_id, likes=request.user).exists()
     return is_liked
+
+
+@login_required
+def following(request):
+    following_users = request.user.following.all()
+    posts = Post.objects.filter(
+        owner__in=following_users).order_by("-timestamp")
+    context = allPosts(posts, request)
+    return render(request, "network/following.html", context)

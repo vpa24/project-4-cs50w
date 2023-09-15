@@ -30,11 +30,11 @@
       style="background-color: #e3f2fd"
     >
       <div class="container">
-        <a class="navbar-brand" href="#">Network</a>
+        <a class="navbar-brand" href="{% url 'index' %}">Network</a>
         <ul class="nav me-auto">
           {% if user.is_authenticated %}
           <li class="nav-item">
-            <a class="nav-link" href="#"
+            <a class="nav-link" href="{% url 'index' %}"
               >Hello <strong>{{ user.username }}</strong>!</a
             >
           </li>
@@ -44,7 +44,7 @@
           </li>
           {% if user.is_authenticated %}
           <li class="nav-item">
-            <a class="nav-link" href="#">Following</a>
+            <a class="nav-link" href="{% url 'following' %}">Following</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
