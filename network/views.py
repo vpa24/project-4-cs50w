@@ -10,6 +10,7 @@ import json
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
 
 from .models import User, Post
 
@@ -17,7 +18,8 @@ from .models import User
 
 
 def index(request):
-    return render(request, "network/index.html")
+    context = allPosts(request)
+    return render(request, "network/index.html", context)
 
 
 def login_view(request):
@@ -89,7 +91,7 @@ def createPost(request):
         'message': latest_post.message,
         'timestamp': naturaltime(latest_post.timestamp)
     }
-    return JsonResponse({"message": "Created a new post successfully.", "posts": post_data}, status=201)
+    return JsonResponse({"message": "Created a new post successfully.", "post": post_data}, status=201)
 
 
 def allPosts(request):
@@ -103,7 +105,13 @@ def allPosts(request):
         'owner_id': post.owner.id,
         'totalLikes': post.likes.all().count()
     } for post in posts]
-    return render(request, 'network/allPosts.html', {'posts': posts_data})
+    p = Paginator(posts_data, 10)
+    page_number = request.GET.get('page')
+    page_obj = p.get_page(page_number)  # returns the desired page object
+    # page_obj = p.page(p.num_pages)
+    context = {'page_obj': page_obj, 'loop_times': range(1, page_obj.paginator.num_pages + 1)}
+
+    return context
 
 
 def viewProfile(request, uid):

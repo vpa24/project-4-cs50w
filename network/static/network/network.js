@@ -60,20 +60,9 @@ function createANewPost(csrf_token, message) {
         tempElement.className = "card mt-3 px-3 py-2 w-75 mx-auto";
         const htmlString = postTemplate(post);
         tempElement.innerHTML = htmlString;
+        console.log(tempElement);
         document.querySelector("#allPosts").prepend(tempElement);
       }
-    });
-}
-
-function displayAllPosts() {
-  fetch("/posts")
-    .then((reponse) => reponse.text())
-    .then((result) => {
-      const template = result;
-      const post_element = document.createElement("div");
-      post_element.innerHTML = template;
-      document.querySelector("#allPosts").append(post_element);
-      document.querySelector(".title").innerHTML = "All Posts";
     });
 }
 
@@ -90,7 +79,6 @@ document.addEventListener("DOMContentLoaded", function () {
       changeFollowStatus(status, btn);
     };
   } else {
-    displayAllPosts();
     const createNewPost = document.querySelector("form#create_a_new_post");
     if (createNewPost) {
       createNewPost.onsubmit = function (e) {
