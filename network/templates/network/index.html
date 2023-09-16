@@ -32,10 +32,10 @@
       <span
         class=""
         data-post-id="{{post.id}}"
+        data-is-user-login="{% if user.is_authenticated %}True{% else %}False{% endif %}"
       >
         <i 
         class="{% if post.totalLikes > 0 %} fa-solid {% else %} fa-regular {% endif %} fa-heart love-icon"
-        data-is-user-login="{% if user.is_authenticated %}True{% else %}False{% endif %}"
         style="color: #ff0080"></i>
       </span>
       <span class="fw-light total-likes-{{post.id}}" style="display:{% if post.totalLikes == 0 %} none {% endif %}">{{post.totalLikes}} </span> 

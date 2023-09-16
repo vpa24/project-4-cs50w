@@ -88,6 +88,7 @@ def createPost(request):
     latest_post = Post.objects.latest('id')
     post_data = {
         'id': latest_post.id,
+        'user_id': latest_post.owner.id,
         'owner': latest_post.owner.username,
         'message': latest_post.message,
         'timestamp': naturaltime(latest_post.timestamp)
@@ -121,8 +122,13 @@ def viewProfile(request, uid):
         follow_status = None
         if request.user:
             follow_status = check_follow_status(request, user_profile.id)
-            return render(request, 'network/userProfile.html', {'user_profile': user_profile, 'posts': posts_data, 'follow_status': follow_status})
-        return render(request, 'network/userProfile.html', {'user_profile': user_profile, 'posts': posts_data, 'follow_status': follow_status})
+            p = Paginator(posts_data, 10)
+            page_number = request.GET.get('page')
+            page_obj = p.get_page(page_number)
+            context = {'user_profile': user_profile, 'page_obj': page_obj, 'loop_times': range(
+                1, page_obj.paginator.num_pages + 1), 'follow_status': follow_status}
+            return render(request, 'network/userProfile.html', context)
+        return render(request, 'network/userProfile.html', context)
     if request.method == "PUT":
         data = json.loads(request.body)
         status = data.get("status")

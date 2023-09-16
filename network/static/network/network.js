@@ -1,6 +1,6 @@
 function postTemplate(post) {
   return `<div class="d-flex">
-			<h5 class="card-title"><a href="#">${post.owner}</a></h5>
+			<h5 class="card-title"><a href="user-profile/${post.user_id}">${post.owner}</a></h5>
 				<span class="text-small ms-3">${post.timestamp}</span>
 			  <div class="edit-post ms-auto cursor-pointer" data-post-id=${post.id}>
 				  <i class="fa-regular fa-pen-to-square"></i>
@@ -59,6 +59,7 @@ function createANewPost(csrf_token, message) {
         const tempElement = document.createElement("div");
         tempElement.className = "card mt-3 px-3 py-2 w-75 mx-auto";
         const htmlString = postTemplate(post);
+        console.log(htmlString);
         tempElement.innerHTML = htmlString;
         console.log(tempElement);
         document.querySelector("#allPosts").prepend(tempElement);
@@ -134,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function () {
         e_className.includes("fa-solid")
       ) {
         const post_id = element.parentElement.dataset.postId;
-        if (element.parentElement.dataset.isUserLogin) {
+        if (element.parentElement.dataset.isUserLogin == "True") {
           fetch(`/post/${post_id}`, {
             method: "PUT",
             body: JSON.stringify({
